@@ -16,5 +16,20 @@ namespace FcSoftware.SourcingProviderTests
             Assert.NotNull(services);
             Assert.Equal("Handyman Services", services.Single(x => x.Id == "-12039").Name);
         }
+
+        [Fact]
+        public async Task GetProspectReviews()
+        {
+            var service = new Service()
+            {
+                Id = "-12039",
+                Name = "Handyman Services"
+            };
+            var ha = new HomeAdvisor();
+            var reviews = await ha.GetReviewsForService(service, "10707");
+
+            Assert.NotNull(reviews);
+            Assert.NotEqual(0, reviews.Count);
+        }
     }
 }
