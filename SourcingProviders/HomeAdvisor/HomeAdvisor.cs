@@ -1,8 +1,8 @@
 ﻿using HtmlAgilityPack;
-using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FcSoftware.SourcingProviders.HomeAdvisor
@@ -82,13 +82,16 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                 var prospectDivClass = string.Format(".//div[@data-srzip='{0}']", postalCode);
                 foreach (var child in reviewPane.SelectNodes(prospectDivClass))
                 {
-                    var prospectReview = new ProspectReview();
-                    prospectReview.Service = service;
+                    var prospectReview = new ProspectReview()
+                    {
+                        Service = service,
+                        RatingAvailable = false
+                    };
 
                     // Parse the itemprops
                     foreach (var span in child.SelectNodes(".//span[@itemprop]"))
                     {
-                        var attrValue = span.GetAttributeValue("itemprop", "");
+                        var attrValue = span.GetAttributeValue("itemprop", "").ToLower();
 
                         switch (attrValue)
                         {
@@ -101,13 +104,13 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                             case "streetaddress":
                                 prospectReview.StreetAddress = span.InnerText;
                                 break;
-                            case "addressLocality":
+                            case "addresslocality":
                                 prospectReview.AddressLocality = span.InnerText;
                                 break;
-                            case "addressRegion":
+                            case "addressregion":
                                 prospectReview.AddressRegion = span.InnerText;
                                 break;
-                            case "postalCode":
+                            case "postalcode":
                                 prospectReview.PostalCode = span.InnerText;
                                 break;
                             default:
@@ -115,19 +118,39 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                         }
                     }
 
-                    // TODO: Update the rating parsing
-                    // Parse the review count and star rating
-                    // These fall under divs rather than the span @itemprop
-                    //var ratingRef = child.SelectNodes(".//div[@class='l-column ratings-reference']").Descendants();
-                    //var starsReviewsNode = ratingRef != null ? ratingRef.Where(x => x.Attributes["class"].Value == "t-stars-small").FirstOrDefault() : null;
-                    //if (starsReviewsNode != null)
-                    //{
-                    //    // Rating found, get review count and star info
-                    //    var starStyleAttr = starsReviewsNode.Attributes["style"].Value;
-                    //    var starRatingStr = starStyleAttr.Substring(7, starStyleAttr.Length - 1);
-                    //    var verifiedReviewsNode = ratingRef.Where(x => x.Attributes["class"].Value.Contains("verified-reviews")).FirstOrDefault();
-                    //    var ratingStr = verifiedReviewsNode != null ? verifiedReviewsNode.InnerText : string.Empty;
-                    //}
+                    var ratingRefNodes = child.SelectNodes(".//div[@class='l-column ratings-reference']/div");
+                    if (ratingRefNodes != null && ratingRefNodes.First().Attributes["class"].Value.Equals("t-stars-small t-stars-rating"))
+                    {
+                        prospectReview.RatingAvailable = true;
+
+                        // Parse star percentage
+                        var reviewRatingNode = ratingRefNodes[0].ChildNodes.Where(x => x.Name.Equals("div")).FirstOrDefault();
+                        if (reviewRatingNode != null)
+                        {
+                            // TODO: Move cleaning double to utility class
+                            // Replace non digit and non decimal characters with nothing
+                            var ratingCleaned = Regex.Replace(reviewRatingNode.Attributes["style"].Value, "[^0-9.]", "");
+                            var starRating = 0.0;
+                            if (double.TryParse(ratingCleaned, out starRating))
+                            {
+                                prospectReview.StarRating = starRating;
+                            }
+                        }
+
+                        // Parse review count
+                        var reviewCountNode = ratingRefNodes.Where(x => x.Attributes["class"].Value.Contains("verified-reviews")).FirstOrDefault();
+                        if (reviewCountNode != null)
+                        {
+                            // TODO: Move cleaning integer to utility class
+                            // Replace non digit characters with nothing
+                            var reviewCountCleaned = Regex.Replace(reviewCountNode.InnerText, "[^0-9]", "");
+                            var reviewCount = 0;
+                            if (int.TryParse(reviewCountCleaned, out reviewCount))
+                            {
+                                prospectReview.ReviewCount = reviewCount;
+                            }
+                        }
+                    }
 
                     // Finished parsing itemprops, add the object to the list
                     if (reviews == null) reviews = new List<ProspectReview>();

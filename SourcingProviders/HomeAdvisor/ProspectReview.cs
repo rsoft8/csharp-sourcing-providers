@@ -26,6 +26,8 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
 
         public int ReviewCount { get; set; }
 
-        public int StarsRating { get; set; }
+        public double StarRating { get; set; }
+
+        public bool RatingAvailable { get; set; }
     }
 }
