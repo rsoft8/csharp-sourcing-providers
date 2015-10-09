@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="HomeAdvisor\HomeAdvisor.cs" />
     <Compile Include="HomeAdvisor\ProspectReview.cs" />
-    <Compile Include="HomeAdvisor\Service.cs" />
+    <Compile Include="HomeAdvisor\Trade.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

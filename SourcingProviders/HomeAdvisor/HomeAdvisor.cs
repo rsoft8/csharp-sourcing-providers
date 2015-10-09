@@ -9,11 +9,11 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
 {
     public class HomeAdvisor
     {
-        public async Task<List<Service>> LoadServices()
+        public async Task<List<Trade>> LoadTrades()
         {
-            List<Service> services = null;
+            List<Trade> trades = null;
 
-            // URL with dropdown box of categories
+            // URL with dropdown box of trades
             var url = @"http://www.homeadvisor.com/c.html";
 
             // Grab the source of the page
@@ -32,14 +32,14 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
 
                 // Grab all <option> children with a value not equal to zero
                 // The <option> value attribute contains the ID
-                // Inner node text of the element contains the category name
+                // Inner node text of the element contains the trade name
                 foreach (var child in select.SelectNodes("//option[not(@value='0')]"))
                 {
                     var optValue = child.Attributes["value"].Value;
                     var optName = child.NextSibling.InnerText;
 
-                    if (services == null) services = new List<Service>();
-                    services.Add(new Service()
+                    if (trades == null) trades = new List<Trade>();
+                    trades.Add(new Trade()
                     {
                         Id = optValue,
                         Name = optName
@@ -47,21 +47,21 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                 }
             }
 
-            return services;
+            return trades;
         }
 
-        public async Task<List<ProspectReview>> GetReviewsForService(Service service, string postalCode)
+        public async Task<List<ProspectReview>> GetProspectsForTrade(Trade trade, string postalCode)
         {
             List<ProspectReview> reviews = null;
 
             // URL to POST to, requiring following form data:
             // - findContractor: searchByZip
-            // - catOid:         [category ID here]
+            // - catOid:         [trade ID here]
             // - zip:            [zip code here]
             var url = @"http://www.homeadvisor.com/c.html";
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string,string>("findContractor", "searchByZip"));
-            values.Add(new KeyValuePair<string,string>("catOid", service.Id));
+            values.Add(new KeyValuePair<string,string>("catOid", trade.Id));
             values.Add(new KeyValuePair<string,string>("zip", postalCode));
 
             using (var postContent = new FormUrlEncodedContent(values))
@@ -84,7 +84,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                 {
                     var prospectReview = new ProspectReview()
                     {
-                        Service = service,
+                        Service = trade,
                         RatingAvailable = false
                     };
 

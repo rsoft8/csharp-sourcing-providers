@@ -8,28 +8,28 @@ namespace FcSoftware.SourcingProviderTests
     public class HomeAdvisorTests
     {
         [Fact]
-        public async Task GetServiceTypes()
+        public async Task GetTrades()
         {
             var ha = new HomeAdvisor();
-            var services = await ha.LoadServices();
+            var trades = await ha.LoadTrades();
 
-            Assert.NotNull(services);
-            Assert.Equal("Handyman Services", services.Single(x => x.Id == "-12039").Name);
+            Assert.NotNull(trades);
+            Assert.Equal("Handyman Services", trades.Single(x => x.Id == "-12039").Name);
         }
 
         [Fact]
-        public async Task GetProspectReviews()
+        public async Task GetProspectsForTrade()
         {
-            var service = new Service()
+            var trade = new Trade()
             {
                 Id = "-12039",
                 Name = "Handyman Services"
             };
             var ha = new HomeAdvisor();
-            var reviews = await ha.GetReviewsForService(service, "10707");
+            var prospects = await ha.GetProspectsForTrade(trade, "10707");
 
-            Assert.NotNull(reviews);
-            Assert.NotEqual(0, reviews.Count);
+            Assert.NotNull(prospects);
+            Assert.NotEqual(0, prospects.Count);
         }
     }
 }

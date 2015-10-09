@@ -10,7 +10,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
     {
         public const int StarsRatingMax = 5;
 
-        public Service Service { get; set; }
+        public Trade Service { get; set; }
 
         public string Name { get; set; }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FcSoftware.SourcingProviders.HomeAdvisor
 {
-    public class Service
+    public class Trade
     {
         public string Name { get; set; }
 
