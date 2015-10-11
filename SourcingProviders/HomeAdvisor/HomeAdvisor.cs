@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System;
 
 namespace FcSoftware.SourcingProviders.HomeAdvisor
 {
     public class HomeAdvisor
     {
+        const string _rootUrl = @"http://www.homeadvisor.com/";
+        const string _proReviewsUrl = @"http://www.homeadvisor.com/c.html";
+
         public async Task<List<Trade>> LoadTrades()
         {
             List<Trade> trades = null;
 
-            // URL with dropdown box of trades
-            var url = @"http://www.homeadvisor.com/c.html";
-
             // Grab the source of the page
             using (var client = new HttpClient())
-            using (var response = await client.GetAsync(url))
+            using (var response = await client.GetAsync(_proReviewsUrl))
             using (var content = response.Content)
             {
                 var xhtml = await content.ReadAsStringAsync();
@@ -58,7 +59,6 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
             // - findContractor: searchByZip
             // - catOid:         [trade ID here]
             // - zip:            [zip code here]
-            var url = @"http://www.homeadvisor.com/c.html";
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string,string>("findContractor", "searchByZip"));
             values.Add(new KeyValuePair<string,string>("catOid", trade.Id));
@@ -66,7 +66,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
 
             using (var postContent = new FormUrlEncodedContent(values))
             using (var client = new HttpClient())
-            using (var response = await client.PostAsync(url, postContent))
+            using (var response = await client.PostAsync(_proReviewsUrl, postContent))
             using (var content = response.Content)
             {
                 // Now have first page with the review content
@@ -118,6 +118,13 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                         }
                     }
 
+                    // Get the URL for the detail page of the prospect
+                    var urlNode = child.SelectNodes(".//a[@itemprop='url']").FirstOrDefault();
+                    if (urlNode != null)
+                    {
+                        prospectReview.Url = new Uri(UrlCombine(_rootUrl, urlNode.Attributes["href"].Value));
+                    }
+
                     var ratingRefNodes = child.SelectNodes(".//div[@class='l-column ratings-reference']/div");
                     if (ratingRefNodes != null && ratingRefNodes.First().Attributes["class"].Value.Equals("t-stars-small t-stars-rating"))
                     {
@@ -159,6 +166,19 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
             }
 
             return reviews;
+        }
+
+        // TODO: Add to Utility library
+        //       Add null check
+        private string UrlCombine(string url1, string url2)
+        {
+            if (url1.Length == 0) return url2;
+            if (url2.Length == 0) return url1;
+
+            url1 = url1.TrimEnd('/', '\\');
+            url2 = url2.TrimStart('/', '\\');
+
+            return string.Format("{0}/{1}", url1, url2);
         }
     }
 }

@@ -29,5 +29,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
         public double StarRating { get; set; }
 
         public bool RatingAvailable { get; set; }
+
+        public Uri Url { get; set; }
     }
 }
