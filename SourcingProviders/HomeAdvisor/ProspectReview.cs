@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FcSoftware.SourcingProviders.HomeAdvisor
 {
-    public class ProspectReview
+    public class Prospect
     {
         public const int StarsRatingMax = 5;
 

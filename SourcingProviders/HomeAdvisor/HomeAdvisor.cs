@@ -51,9 +51,9 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
             return trades;
         }
 
-        public async Task<List<ProspectReview>> GetProspectsForTrade(Trade trade, string postalCode)
+        public async Task<List<Prospect>> GetProspectsForTrade(Trade trade, string postalCode)
         {
-            List<ProspectReview> reviews = null;
+            List<Prospect> prospects = null;
 
             // URL to POST to, requiring following form data:
             // - findContractor: searchByZip
@@ -82,7 +82,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                 var prospectDivClass = string.Format(".//div[@data-srzip='{0}']", postalCode);
                 foreach (var child in reviewPane.SelectNodes(prospectDivClass))
                 {
-                    var prospectReview = new ProspectReview()
+                    var prospect = new Prospect()
                     {
                         Service = trade,
                         RatingAvailable = false,
@@ -97,22 +97,22 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                         switch (attrValue)
                         {
                             case "name":
-                                prospectReview.Name = span.InnerText;
+                                prospect.Name = span.InnerText;
                                 break;
                             case "telephone":
-                                prospectReview.Phone = span.InnerText;
+                                prospect.Phone = span.InnerText;
                                 break;
                             case "streetaddress":
-                                prospectReview.StreetAddress = span.InnerText;
+                                prospect.StreetAddress = span.InnerText;
                                 break;
                             case "addresslocality":
-                                prospectReview.AddressLocality = span.InnerText;
+                                prospect.AddressLocality = span.InnerText;
                                 break;
                             case "addressregion":
-                                prospectReview.AddressRegion = span.InnerText;
+                                prospect.AddressRegion = span.InnerText;
                                 break;
                             case "postalcode":
-                                prospectReview.PostalCode = span.InnerText;
+                                prospect.PostalCode = span.InnerText;
                                 break;
                             default:
                                 break;
@@ -123,13 +123,13 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                     var urlNode = child.SelectNodes(".//a[@itemprop='url']").FirstOrDefault();
                     if (urlNode != null)
                     {
-                        prospectReview.Url = new Uri(UrlCombine(_rootUrl, urlNode.Attributes["href"].Value));
+                        prospect.Url = new Uri(UrlCombine(_rootUrl, urlNode.Attributes["href"].Value));
                     }
 
                     var ratingRefNodes = child.SelectNodes(".//div[@class='l-column ratings-reference']/div");
                     if (ratingRefNodes != null && ratingRefNodes.First().Attributes["class"].Value.Equals("t-stars-small t-stars-rating"))
                     {
-                        prospectReview.RatingAvailable = true;
+                        prospect.RatingAvailable = true;
 
                         // Parse star percentage
                         var reviewRatingNode = ratingRefNodes[0].ChildNodes.Where(x => x.Name.Equals("div")).FirstOrDefault();
@@ -141,7 +141,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                             var starRating = 0.0;
                             if (double.TryParse(ratingCleaned, out starRating))
                             {
-                                prospectReview.StarRating = starRating;
+                                prospect.StarRating = starRating;
                             }
                         }
 
@@ -155,18 +155,18 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                             var reviewCount = 0;
                             if (int.TryParse(reviewCountCleaned, out reviewCount))
                             {
-                                prospectReview.ReviewCount = reviewCount;
+                                prospect.ReviewCount = reviewCount;
                             }
                         }
                     }
 
                     // Finished parsing itemprops, add the object to the list
-                    if (reviews == null) reviews = new List<ProspectReview>();
-                    reviews.Add(prospectReview);
+                    if (prospects == null) prospects = new List<Prospect>();
+                    prospects.Add(prospect);
                 }
             }
 
-            return reviews;
+            return prospects;
         }
 
         // TODO: Add to Utility library
