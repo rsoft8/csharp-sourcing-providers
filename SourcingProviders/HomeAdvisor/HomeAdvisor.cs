@@ -85,7 +85,8 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
                     var prospectReview = new ProspectReview()
                     {
                         Service = trade,
-                        RatingAvailable = false
+                        RatingAvailable = false,
+                        Id = child.Attributes["data-spid"].Value
                     };
 
                     // Parse the itemprops
