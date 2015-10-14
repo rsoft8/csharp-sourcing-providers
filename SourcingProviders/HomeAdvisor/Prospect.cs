@@ -33,5 +33,9 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
         public Uri Url { get; set; }
 
         public string Id { get; set; }
+
+        public List<Review> Reviews { get; set; }
+
+        public List<Achievement> Achievements { get; set; }
     }
 }
