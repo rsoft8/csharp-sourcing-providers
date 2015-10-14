@@ -44,8 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HomeAdvisor\Achievement.cs" />
     <Compile Include="HomeAdvisor\HomeAdvisor.cs" />
     <Compile Include="HomeAdvisor\Prospect.cs" />
+    <Compile Include="HomeAdvisor\Review.cs" />
     <Compile Include="HomeAdvisor\Trade.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
