@@ -12,6 +12,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
     {
         const string _rootUrl = @"http://www.homeadvisor.com/";
         const string _proReviewsUrl = @"http://www.homeadvisor.com/c.html";
+        const string _prospectReviewsUrl = @"http://www.homeadvisor.com/sm/ratings/{0}?page={1}&filteredByTask=false&sort=newest";
 
         public async Task<List<Trade>> LoadTrades()
         {
@@ -167,6 +168,74 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
             }
 
             return prospects;
+        }
+
+        public async Task<List<Review>> GetReviewsForProspect(Prospect p)
+        {
+            List<Review> reviews = null;
+
+            // 10 Reviews per page
+            var maxReviewPages = Math.Ceiling(p.ReviewCount / 10.0);
+
+            // Loop through all of the reivew pages
+            for (var curPage = 0; curPage < maxReviewPages; curPage++)
+            {
+                // Get the page of reviews
+                var url = string.Format(_prospectReviewsUrl, p.Id, (curPage + 1));
+
+                using (var client = new HttpClient())
+                using (var response = await client.GetAsync(url))
+                using (var content = response.Content)
+                {
+                    var xhtml = await content.ReadAsStringAsync();
+
+                    // Parse the XHTML result
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(xhtml);
+
+                    foreach (var reviewNode in doc.DocumentNode.SelectNodes(".//div[@itemprop='review']"))
+                    {
+
+                        var review = new Review();
+
+                        // Parse the itemprops
+                        foreach (var span in reviewNode.SelectNodes(".//span[@itemprop]"))
+                        {
+                            var attrValue = span.GetAttributeValue("itemprop", "").ToLower();
+
+                            switch (attrValue)
+                            {
+                                case "datepublished":
+                                    review.DatePublished = DateTime.Parse(span.InnerText);
+                                    break;
+                                case "reviewrating":
+                                    review.Rating = double.Parse(span.InnerText);
+                                    break;
+                                case "reviewbody":
+                                    review.Body = span.InnerText;
+                                    break;
+                                case "author":
+                                    review.Author = span.InnerText;
+                                    break;
+                            }
+                        } // End parsing itemprops
+
+                        // Parse review ID
+                        review.Id = reviewNode.SelectSingleNode(".//div/@data-rating-id").GetAttributeValue("data-rating-id", string.Empty);
+
+                        // TODO: Parse location (not always linked in a href)
+
+                        // TODO: Parse project (not always linked in a href)
+
+
+                        // Add the review to the collection
+                        if (reviews == null) reviews = new List<Review>();
+                        reviews.Add(review);
+                    }
+                }
+            }
+
+            return reviews;
         }
 
         // TODO: Add to Utility library

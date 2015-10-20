@@ -31,5 +31,21 @@ namespace FcSoftware.SourcingProviderTests
             Assert.NotNull(prospects);
             Assert.NotEqual(0, prospects.Count);
         }
+
+        [Fact]
+        public async Task GetProspectReviews()
+        {
+            var p = new Prospect()
+            {
+                ReviewCount = 22,
+                Id = "22403306"
+            };
+
+            var ha = new HomeAdvisor();
+            var reviews = await ha.GetReviewsForProspect(p);
+
+            Assert.NotNull(reviews);
+            Assert.NotEqual(0, reviews.Count);
+        }
     }
 }

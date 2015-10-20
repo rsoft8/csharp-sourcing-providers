@@ -4,6 +4,7 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
 {
     public class Review
     {
+        public string Id { get; set; }
         public double Rating { get; set; }
 
         public DateTime DatePublished { get; set; }
