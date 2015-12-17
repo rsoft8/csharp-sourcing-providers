@@ -238,6 +238,34 @@ namespace FcSoftware.SourcingProviders.HomeAdvisor
             return reviews;
         }
 
+        public List<Prospect> GetProspectsForTradesWithZipCodes(List<Trade> trades, List<string> zipCodes)
+        {
+            // Check params
+            if (trades == null || zipCodes == null)
+                return null;
+
+            // Obtain the prospect list for each trade in each zip code
+            List<Prospect> prospects = null;
+            foreach (var trade in trades)
+            {
+                foreach (var zipCode in zipCodes)
+                {
+                    var currentResult = this.GetProspectsForTrade(trade, zipCode).Result;
+
+                    if (prospects == null) prospects = new List<Prospect>();
+                    prospects.AddRange(currentResult);
+
+                    // Delay between zip codes here
+                    System.Threading.Thread.Sleep(5000);
+                }
+
+                // Delay between trades here
+                System.Threading.Thread.Sleep(10000);
+            }
+
+            return prospects;
+        }
+
         // TODO: Add to Utility library
         //       Add null check
         private string UrlCombine(string url1, string url2)
